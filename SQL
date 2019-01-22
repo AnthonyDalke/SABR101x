@@ -1,0 +1,379 @@
+--MODULE 1
+
+--In the previous lecture, the Describe Batting command is shown. Now, use a similiar command, but instead - describe the Fielding table in you query.
+
+Describe Fielding
+
+--Now modify the previous query (shown again below) to instead return the batting statistics for the 1950 MLB season.
+
+SELECT *
+	FROM Batting
+	WHERE yearID=1950;
+
+--Modify the following WHERE clause to only return the stats for the 1927 "Murderer's Row" New York Yankees (add AND teamID = 'NYA').
+
+SELECT *
+	FROM Batting
+	WHERE yearID = 1927
+		AND teamID ='NYA';
+
+--Let's now ignore players who didn't have any at bats. Query the batting stats of only 1927 Yankees with AB > 0.
+
+SELECT *
+	FROM Batting
+	WHERE yearID = 1927
+		AND teamID ='NYA'
+		AND AB > 0;
+
+--As shown in the last lecture, it is possible to create statistics using the available data in the Lahman Database. Let's try to calculate our own statistic using this method: Batting Average. Modify the SELECT clause in the following query to look like: SELECT *, H/AB AS BA Note the comma separating the two parts of the SELECT, and the way we use AS to name the calculated expression.
+
+SELECT *, 
+	H/AB AS BA
+	FROM Batting
+	WHERE teamID = 'CIN' 
+		AND yearID = 1975 
+		AND AB > 0;
+
+--Now let's add a slightly more complicated statistic formula to the query. We will keep our Batting Average column (BA), but we will also calculate Slugging Percentage in the SELECT command, using the formula (H+2B+2*3B+3*HR)/AB AS SLG. The order of columns must be *, BA, SLG.
+
+SELECT *, 
+	H/AB AS BA, 
+	(H+2B+2*3B+3*HR)/AB AS SLG
+	FROM Batting
+	WHERE teamID = 'CIN' 
+		AND yearID = 1975 
+		AND AB > 0;
+
+--Let's add another useful statistic to the query - On-Base Percentage. We will keep our Batting Average and Slugging Percentage columns (BA, SLG), but we will also calculate On-Base Percentage in the SELECT command, using the formula (H+BB+HBP)/(AB+BB+HBP+SF) AS OBP The order of columns must be *, BA, SLG, OBP.
+
+SELECT *, 
+	H/AB AS BA, 
+	(H+2B+2*3B+3*HR)/AB AS SLG, 
+	(H+BB+HBP)/(AB+BB+HBP+SF) AS OBP
+	FROM Batting
+	WHERE teamID = 'CIN' 
+		AND yearID = 1975 
+		AND AB > 0;
+
+--Finally, let's create a baseball card for the career of Johnny Bench, a key member of the 1975 Cincinnati Reds Big Red Machine. Now, we are not concerned with the teamID, yearID, or number of ABs - those stipulations can be deleted from the WHERE clause. We simply want to SELECT all the same statistics from the last query for all results in the Lahman Database where the playerID = 'benchjo01'.
+
+SELECT playerID, 
+	yearID, 
+	teamID, 
+	G, 
+	AB, 
+	H, 
+	2B, 
+	3B, 
+	HR, 
+	R, 
+	RBI, 
+	SB, 
+	H/AB AS BA,
+	(H+BB+HBP)/(AB+BB+HBP+SF) AS OBP,
+	(H+2B+2*3B+3*HR)/AB AS SLG
+	FROM Batting
+	WHERE playerID = 'benchjo01';
+	
+--MODULE 2
+
+--Write a SQL query that selects playerID, awardID, and yearID from the AwardsPlayers Table.
+
+SELECT playerID,
+    awardID,
+    yearID
+    FROM AwardsPlayers;
+	
+--Now, modify your previous query, adding aliases that rename the awardID column as AwardName and the yearID column as Year.
+
+SELECT playerID,
+    awardID AS AwardName,
+    yearID AS Year
+    FROM AwardsPlayers;
+	
+--Write a SQL Query that selects the playerID, Strikeouts, Walks, and HomeRuns from the Pitching table for all players in 2014.
+
+SELECT playerID,
+    SO AS Strikeouts,
+    BB AS Walkss,
+    HR AS HomeRuns
+    FROM Pitching
+    WHERE yearID = 2014;
+	
+--Now modify your previous query, adding a new column called FIP.
+
+SELECT playerID,
+    SO AS Strikeouts,
+    BB AS Walkss,
+    HR AS HomeRuns,
+	(3 * BB + 3 * HBP + 13 * HR - 2 * SO) / (IPOuts / 3) + 3.132 AS FIP
+    FROM Pitching
+    WHERE yearID = 2014;
+	
+--Write a SQL query that selects playerID, yearID, ERA, and Innings_Pitched from the Pitching Table for all players since (and including) 2010 with an ERA of less than 3.00 and at least 100 Innings Pitched (300 outs recorded).
+
+SELECT playerID,
+    yearID,
+	ERA,
+	IPOuts / 3 AS Innings_Pitched
+	FROM Pitching
+    WHERE yearID >= 2010
+		AND ERA < 3.00
+		AND (IPOuts / 3) >= 100;
+		
+--Write a SQL query to find the batters who led the major leagues in Three True Outcome Percentage (BB + SO + HR)/(AB + BB + SF + SH + HBP) in 2000, for players with at least 500 At Bats. Select playerID and TTO Percentage, naming this column TTOPercentage.
+
+SELECT playerID,
+	(BB + SO + HR) / (AB + BB + SF + SH + HBP) AS TTOPercentage
+	FROM Batting
+	WHERE yearID = 2000
+		AND AB >= 500
+	ORDER BY TTOPercentage DESC;
+	
+--Use DISTINCT to get every unique teamID from the Teams table.
+
+SELECT DISTINCT teamID
+	FROM Teams;
+	
+--Write a query that selects the playerID and Career Home Run totals from the Batting Table for each player in the Lahman Database. Call this variable Career_HR.
+
+SELECT playerID,
+	SUM(HR) AS Career_HR
+	FROM Batting
+	GROUP BY playerID;
+	
+--Write a query that selects the playerID and Career Strikeout totals from the Batting Table for each player in the Lahman Database. Call this variable Career_SO. Sort the results so that the players with the highest strikeout totals appear first in the results.
+
+SELECT playerID,
+	SUM(SO) AS Career_SO
+	FROM Batting
+	GROUP BY playerID
+	ORDER BY Career_SO DESC, playerID;
+	
+--Now, modify your query from the previous problem to only return the top 30 players in career strikeouts.
+
+SELECT playerID,
+	SUM(SO) AS Career_SO
+	FROM Batting
+	GROUP BY playerID
+	ORDER BY Career_SO DESC, playerID
+	LIMIT 30;
+	
+--Now, modify your previous query to select the yearID and the number of strikeouts in the MLB for each of the 30 years in MLB history with the most total strikeouts, from the Batting Table. Call this variable League_SO.
+
+SELECT yearID,
+	SUM(SO) AS League_SO
+	FROM Batting
+	GROUP BY yearID
+	ORDER BY League_SO DESC
+	LIMIT 30;
+	
+--Write a query that selects the yearID and strikeout totals from the Batting Table for the yearly leaders for each year in the Lahman Database. Call the total Leading_SO. Order the results so the most recent years are first.
+
+SELECT yearID,
+	MAX(SO) AS Leading_SO
+	FROM Batting
+	GROUP BY yearID
+	ORDER BY yearID DESC;
+	
+--Write a query that selects the yearID and the average number of home runs for all players between 450 and 500 ABs (not including 450 and 500), for each year since and including 1950. Call this value Average_HR. ORDER the results so that the years with the greatest average home runs for these players is first. Also ORDER the results using yearID in descending order (this sub-ORDER should come second).
+
+SELECT yearID,
+	AVG(HR) AS Average_HR
+	FROM Batting
+	WHERE AB > 450 AND
+	AND AB < 500 500
+	AND yearID >- 1950
+	GROUP BY yearID
+	ORDER BY Average_HR DESC, yearID DESC;
+	
+--Write a query that selects the playerID, Batting Average, On-Base Percentage (H+BB+HBP)/(AB+BB+HBP+SF), and Slugging Percentage ((H+2B+2*3B+3*HR)/AB) for all members of the 2001 Seattle Mariners (teamID SEA) with 100 at bats or more. Call the 3 stats BA, OBP, and SLG. Order the results by OPS (OBP plus SLG), with the highest first.
+
+SELECT playerID,
+	H / AB AS BA,
+	(H + BB + HBP) / (AB + BB + HBP + SF) AS OBP,
+	(H + 2B+ 2 * 3B + 3 * HR) / AB AS SLG
+	FROM Batting
+	WHERE yearID = 2001
+		AND teamID = 'SEA'
+		AND AB >= 100
+	ORDER BY OBP + SLG DESC;
+	
+--Write a query that selects from the Batting Table. Using a GROUP BY and a HAVING command, select the teamID, yearID, and home run total of the team's leader (Leading_HR) for all team-seasons whose leading home run hitter hit at least 45 home runs. Order the results by Leading_HR, from greatest to least. THEN order your results by yearID, secondarily (not descending). Lastly, order by teamID, not descending. Be sure, using your GROUP BY, that each row in the results corresponds to one team for one season.
+
+SELECT teamID,
+	yearID,
+	MAX(HR) AS Leading_HR
+	FROM Batting
+	GROUP BY teamID, yearID
+	HAVING Leading_HR >= 45
+	ORDER BY Leading_HR DESC, yearID, teamID;
+	
+--Modify your query from the first problem of this track, from the 2001 Mariners, adding an additional column for On-Base plus Slugging (OPS). Order by OPS, from least to greatest.
+
+SELECT playerID,
+	H / AB AS BA,
+	(H + BB + HBP) / (AB + BB + HBP + SF) AS OBP,
+	(H + 2B+ 2 * 3B + 3 * HR) / AB AS SLG,
+	(H + BB + HBP) / (AB + BB + HBP + SF) + (H + 2B+ 2 * 3B + 3 * HR) / AB AS OPS
+	FROM Batting
+	WHERE yearID = 2001
+		AND teamID = 'SEA'
+		AND AB >= 100
+	ORDER BY OPS;
+	
+--Write a SQL Query that uses a nested select statement to select from the Pitching Table the playerID, yearID, teamID, and K_Minus_BB (Strikeouts minus Walks divided by Batters Faced) for all pitcher seasons since and including 1990 that have a larger K-BB% than Clayton Kershaw's kershcl01 in 2014. Limit your results to pitchers with at least 150 innings pitched (450 outs recorded). Order your results By K-BB%, from greatest to least.
+
+SELECT playerID,
+	yearID,
+	teamID,
+	(SO - BB) / BFP AS K_Minus_BB
+	FROM Pitching
+	WHERE yearID >= 1990
+		AND (SO - BB) / BFP >
+		(SELECT (SO - BB) / BFP AS K_Minus_BB
+			FROM Pitching
+			WHERE playerID = 'kershcl01'
+			AND yearID = 2014)
+		AND IPOuts >= 450
+	ORDER BY K_Minus_BB DESC
+	
+--MODULE 3
+
+--Write a query that selects teamID, yearID, Wins (W), Pythagorean Predicted Wins (predictedW), and Pythagorean Error (Error) from the teams table. Include only results for the Dodgers (teamID LAN) for years since and including 1980 and order your results with the greatest positive error first.
+
+SELECT teamID,
+	yearID,
+	W AS Wins,
+	G * (R * R / (R * R + RA * RA)) AS predictedW,
+	G * (R * R / (R * R + RA * RA)) - W AS Error
+	FROM Teams
+	WHERE teamID = 'LAN'
+		AND yearID >= 1980
+	ORDER BY Error DESC
+	
+--Modify the nested select query from the previous video to select the w.yearID, MINError, MAXError, STDError for all Pythagorean win predictions from 1955 onwards (do not use the ABS function for any of these). Recall that (R*R)/(R*R + RA*RA) is the formula for pythagorean win *percentage*, and error is defined as pythagorean wins minus actual wins. Order by the highest standard deviation (using the STDDEV function). ROUND your standard deviation to three decimal places using the ROUND function
+	
+SELECT w.yearID, 
+	MIN(w.Error) AS MINError,
+	MAX(w.Error) AS MAXError,
+	ROUND(STDDEV(w.Error), 3) AS STDError
+	FROM
+	(
+		SELECT teamID,
+		yearID,
+		W AS Wins,
+		G * (R * R / (R * R + RA * RA)) AS predictedW,
+		G * (R * R / (R * R + RA * RA)) - W AS Error
+		FROM Teams
+		WHERE yearID >= 1955
+	) w
+	GROUP BY w.yearID
+	ORDER BY STDError DESC
+
+--Write a query that selects ERA and FIP (3*BB + 3*HBP + 13*HR - 2*SO)/(IPOuts/3) + 3.139 from the pitching table for all pitchers on the 1998 Braves (teamID = ATL) with at least 10 games started. Order your results by ERA-FIP, with the largest positive differential first.
+
+SELECT ERA,
+	(3 * BB + 3 * HBP + 13 * HR - 2 * SO) / (IPOuts / 3) + 3.139 AS FIP
+	FROM Pitching
+	WHERE teamID = 'ATL'
+		AND yearID = 1998
+		AND GS >= 10
+	ORDER BY ERA - FIP DESC
+	
+--Modify your last query, selecting the same columns with the same ordering, plus yearID as column 2, but for all Pedro Martinez seasons. Do this by searching for his NameLast and NameFirst, not by searching for his playerID.
+
+SELECT ERA,
+	yearID,
+	(3 * BB + 3 * HBP + 13 * HR - 2 * SO) / (IPOuts / 3) + 3.139 AS FIP
+	FROM Pitching p
+	INNER JOIN MASTER m ON p.playerID = m.playerID
+	WHERE nameFirst = 'Pedro'
+		AND nameLast = 'Martinez'
+	ORDER BY ERA - FIP DESC
+	
+--Write a query that joins the batting table (aliased as b) with the pitching table (aliased as p) on playerID, yearID, and stint. Then, group by yearID to get league numbers for players who pitched. Use aggregate functions to select b.yearID, total hits for pitchers as Total_H, total at bats for pitchers as Total_AB, and league batting average for pitchers as League_AVG. When calculating league batting average, be sure to divide *total* hits by *total* at bats. Order your results with the highest league batting average for pitchers first. Secondarily, order your results by yearID.
+
+SELECT b.yearID,
+	SUM(b.H) AS Total_H,
+	SUM(b.AB) AS Total_AB,
+	SUM(b.H) / SUM(b.AB) AS League_AVG
+	FROM Batting b
+	INNER JOIN Pitching p ON b.playerID = p.playerID
+		AND b.yearID = p.yearID
+		AND b.stint = p.stint
+	GROUP BY b.yearID
+	ORDER BY League_AVG DESC, yearID
+	
+--Write a query that selects yearID, teamID, and total payroll by team-season from the Salaries table, as Payroll. Note that since the Salaries table is by player, you will need to use a GROUP BY to ensure that each row in the result contains one season from one team. Order your results by yearID, and then by teamID. It is NOT necessary to use a join to solve this problem.
+
+SELECT yearID, 
+	teamID, 
+	SUM(Salary) AS Payroll
+	FROM Salaries
+	GROUP BY yearID, teamID
+	ORDER BY yearID, teamID
+	
+--Now, use the query from the above problem to join the Teams table (aliased as t) to the table the is the result of the above query (aliased as s), on teamID and yearID. Select yearID, teamID, and attendance from Teams, and Payroll from the derived table (s). Also select attendance per payroll dollar, as FansPerDollar. Order your result so that the team with the fewest fans per dollar is first.
+
+SELECT t.yearID, 
+	t.teamID, 
+	t.attendance,
+	s.Payroll,
+	t.attendance / s.Payroll AS FansPerDollar
+	FROM Teams t
+	INNER JOIN
+		(SELECT yearID, 
+		teamID, 
+		SUM(Salary) AS Payroll
+		FROM Salaries
+		GROUP BY yearID, teamID
+		) s
+	ON t.teamID = s.teamID
+	AND t.yearID = s.yearID
+	ORDER BY FansPerDollar
+	
+--Join the Pitching (aliased as p) table to the Master table (aliased as m). Return results for all players from Venezuela m.BirthCountry = "Venezuela", with more than 60 IP on the season. Select a player's full name (use the CONCAT funciton to combine first name, a space, and last name) as playerName, m.BirthCountry as Country, p.yearID as Year, Innings Pitched as IP, p.ERA as ERA, and (3*BB + 3*HBP + 13*HR - 2*SO)/IP + 3.2 as FIP. Remember that in the Lahman database, IP is stored as IPOuts, and IP = IPOuts/3.
+
+SELECT CONCAT(m.nameFirst," ",m.nameLast) AS playerName,
+	m.birthCountry AS Country,
+	p.yearID AS Year,
+	p.IPOuts / 3 AS IP,
+	p.ERA AS ERA,
+	(3 * p.BB + 3 * p.HBP + 13 * p.HR - 2 * p.SO) / (p.IPOuts / 3)  + 3.2 as FIP
+	FROM Pitching p
+	INNER JOIN Master m
+		ON p.playerID = m.playerID
+	WHERE m.birthCountry = 'Venezuela'
+		AND p.IPOuts / 3 > 60
+		
+--We will run a query to find the triple-slash stats for all MVP winners since (not including) 1990. Join the Batting table (aliased as b) with the master table (aliased on m) on playerID. Then, join the AwardsPlayers table (aliased as a) on BOTH playerID and yearID, so that the values match those of the batting table. This can be done with an AND modifier in the ON clause. Then select CONCAT(m.nameFirst, " ", m.nameLast) as playerName, b.yearID as Year, BA, OBP, and SLG. Recall that the formulas for BA, OBP, and SLG are H/AB, (H+BB+HBP)/(AB+BB+HBP+SF), and (H+2B+2*3B+3*HR)/AB respectively. Limit your results to those in which a.awardID is 'Most Valuable Player' and b.yearID is after 1990. Order your results by SLG from greatest to least. Then, order by b.playerID secondarily.
+
+SELECT CONCAT(m.nameFirst," ",m.nameLast) AS playerName,
+	b.yearID AS Year,
+	H / AB AS AVG,
+	(H + BB + HBP) / (AB + BB + HBP + SF) AS OBP,
+	(H + 2B + 2 * 3B + 3 * HR) / AB AS SLG
+	FROM Batting b
+	INNER JOIN Master m
+		ON b.playerID = m.playerID
+	INNER JOIN AwardsPlayers a
+		ON b.playerID = a.playerID
+		AND b.yearID = a.yearID
+	WHERE a.awardID ='Most Valuable Player'
+		AND b.yearID > 1990
+	ORDER BY SLG DESC, b.playerID
+	
+--We will run a query to determine which all stars also batted in the postseason. Join the BattingPost table (aliased as b, in the FROM clause) with the AllstarFull table (aliased as a) on playerID and yearID. Use the correct join to return results for ALL all stars, whether or not they played in the postseason. Select a.playerID, a.yearID, a.startingPos and postseason total bases SUM(b.H + b.2B + 2*b.3B + 3*b.HR) as Post_TB. Limit your results to those since (and including) 1950 (using yearID from the AllstarFull table). Group your results by playerID and yearID, to return results for one full postseason. Order your results with the largest number of postseason total bases first, secondarily by playerID, and lastly by yearID.
+
+SELECT a.playerID,
+	a.yearID,
+	a.startingPos,
+	SUM(b.H + b.2B + 2 * b.3B + 3 * b.HR) AS Post_TB
+	FROM BattingPost b
+	RIGHT JOIN AllstarFull a
+		ON b.playerID = a.playerID
+		AND b.yearID = a.yearID
+	WHERE a.yearID >= 1950
+	GROUP BY a.playerID, a.yearID
+	ORDER BY Post_TB DESC, a.playerID, a.yearID
